@@ -2,6 +2,7 @@ from modelos.usuario import Usuario
 from modelos.publicacion import Publicacion
 from modelos.like import Like
 from modelos.amistad import Amistad
+from prettytable import PrettyTable  # <- nueva importación
 
 def mostrar_menu():
     print("\n===============================")
@@ -39,20 +40,26 @@ def listar_usuarios():
     if not usuarios:
         print("No hay usuarios registrados.")
         return []
+
+    # --- Mostrar usuarios con PrettyTable ---
+    tabla = PrettyTable()
+    tabla.field_names = ["ID", "Nombre", "Correo", "Fecha Registro"]
     for u in usuarios:
-        print(f"ID: {u['id']} | Nombre: {u['nombre']} | Correo: {u['correo']}")
+        tabla.add_row([u["id"], u["nombre"], u["correo"], u["creado_at"]])
+    print(tabla)
+
     return usuarios
 
 def crear_publicacion():
     usuarios = listar_usuarios()
-    if not usuarios: return
+    if not usuarios:
+        return
 
     try:
         usuario_id = int(input("Ingresa el ID del usuario que publica: "))
-        # Simple check para ver si el ID existe en la lista mostrada (mejorable, pero funcional)
         if not any(u['id'] == usuario_id for u in usuarios):
-             print("Error: ID de usuario no valido.")
-             return
+            print("Error: ID de usuario no valido.")
+            return
         
         contenido = input("Escribe el contenido de la publicacion: ")
         
@@ -64,7 +71,7 @@ def crear_publicacion():
     except ValueError:
         print("Error: Debes ingresar un numero valido para el ID.")
     except Exception as e:
-         print(f"Error: {e}")
+        print(f"Error: {e}")
 
 def listar_publicaciones():
     print("\n--- LISTADO DE PUBLICACIONES ---")
@@ -73,10 +80,8 @@ def listar_publicaciones():
         print("No hay publicaciones.")
         return []
     for p in publicaciones:
-        # Usamos el nombre que trajimos con JOIN en el modelo
         print(f"ID: {p['id']} | Autor: {p['nombre']} (ID: {p['usuario_id']})")
         print(f"Contenido: {p['contenido'][:50]}...")
-        # Contar likes dinamicamente
         likes = Like.contar_por_publicacion(p['id'])
         print(f"[{p['fecha'].strftime('%Y-%m-%d %H:%M')}] | Me gusta: {likes}")
         print("-" * 30)
@@ -84,7 +89,8 @@ def listar_publicaciones():
 
 def dar_like():
     publicaciones = listar_publicaciones()
-    if not publicaciones: return
+    if not publicaciones:
+        return
     
     listar_usuarios()
     
@@ -93,16 +99,16 @@ def dar_like():
         publicacion_id = int(input("Ingresa el ID de la publicacion a la que daras like: "))
         
         l = Like(usuario_id, publicacion_id)
-        l.guardar() # La funcion ya maneja la salida de exito o duplicado
-        
+        l.guardar()
     except ValueError:
         print("Error: Debes ingresar IDs numericos validos.")
     except Exception as e:
-         print(f"Error: {e}")
+        print(f"Error: {e}")
 
 def enviar_amistad():
     usuarios = listar_usuarios()
-    if not usuarios: return
+    if not usuarios:
+        return
 
     try:
         id1 = int(input("Ingresa tu ID de usuario: "))
@@ -121,7 +127,7 @@ def enviar_amistad():
     except ValueError:
         print("Error: Debes ingresar IDs numericos validos.")
     except Exception as e:
-         print(f"Error: {e}")
+        print(f"Error: {e}")
 
 def ver_amigos():
     listar_usuarios()
@@ -133,15 +139,18 @@ def ver_amigos():
         if not amigos:
             print("Este usuario no tiene amigos registrados.")
             return
-            
+        
+        # --- Mostrar amigos con PrettyTable ---
+        tabla = PrettyTable()
+        tabla.field_names = ["ID", "Nombre", "Correo"]
         for a in amigos:
-            print(f"ID: {a['id']} | Nombre: {a['nombre']} | Correo: {a['correo']}")
+            tabla.add_row([a["id"], a["nombre"], a["correo"]])
+        print(tabla)
             
     except ValueError:
         print("Error: Debes ingresar un ID numerico valido.")
     except Exception as e:
-         print(f"Error: {e}")
-
+        print(f"Error: {e}")
 
 # --- Bucle Principal ---
 
@@ -164,7 +173,7 @@ def main():
         elif opcion == '7':
             ver_amigos()
         elif opcion == '0':
-            print("Saliendo de la aplicacion. Hasta pronto!")
+            print("Saliendo de la aplicacion. Hasta pronto.")
             break
         else:
             print("Opcion no valida. Intentalo de nuevo.")
